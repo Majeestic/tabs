@@ -38,35 +38,43 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   // ************************ 2 Создаем таймер обратного отсчета на сайте *************************
+  const date = new Date();
+  const deadline = `2023-02-${date.getDate() + 10}`;
 
-   const deadline = '2023-02-25';
-
-
-   function getTimeRemaining(endTime) {
+  function getTimeRemaining(endTime) {
     const t = Date.parse(endTime) - Date.parse(new Date());
-    const days = Math.floor(t / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((t / (1000 * 60 * 60) % 24));
-    const minutes = Math.floor((t / 1000 / 60) % 60);
-    const seconds = Math.floor((t / 1000) % 60);
+    let days, hours, minutes, seconds;
+
+    if (t <= 0) {
+      days = 0;
+      hours = 0;
+      minutes = 0;
+      seconds = 0;
+    } else {
+      days = Math.floor(t / (1000 * 60 * 60 * 24));
+      hours = Math.floor((t / (1000 * 60 * 60)) % 24);
+      minutes = Math.floor((t / 1000 / 60) % 60);
+      seconds = Math.floor((t / 1000) % 60);
+    }
 
     return {
-      'total': t,
-      'days': days,
-      'hours': hours,
-      'minutes': minutes,
-      'seconds': seconds,
-    }
-   }
+      total: t,
+      days: days,
+      hours: hours,
+      minutes: minutes,
+      seconds: seconds,
+    };
+  }
 
-   function getZero(num) {
+  function getZero(num) {
     if (num >= 0 && num < 10) {
-      return `0${num}`;                                                                  
+      return `0${num}`;
     } else {
       return num;
     }
-   }
+  }
 
-   function setClock(selector, endTime) {
+  function setClock(selector, endTime) {
     const timer = document.querySelector(selector);
     const days = timer.querySelector('#days');
     const hours = timer.querySelector('#hours');
@@ -77,21 +85,79 @@ window.addEventListener('DOMContentLoaded', () => {
     updateClock();
 
     function updateClock() {
-      const t = getTimeRemaining(endTime)
+      const t = getTimeRemaining(endTime);
 
       days.textContent = getZero(t.days);
       hours.textContent = getZero(t.hours);
       minutes.textContent = getZero(t.minutes);
       seconds.textContent = getZero(t.seconds);
 
-      if(t.total <= 0) {
+      if (t.total <= 0) {
         clearInterval(timeInterval);
       }
     }
-   }
+  }
 
-   setClock('.timer', deadline);
+  setClock('.timer', deadline);
 
+  //  *************** Модальное окно *******************
+  const modalTrigger = document.querySelectorAll('[data-modal]');
+  const modal = document.querySelector('.modal');
+  const modalClose = document.querySelector('[data-close]');
+
+  function openModal() {
+    modal.classList.toggle('show');
+    document.body.style.overflow = 'hidden';
+    clearInterval(modalTimerId); //удаляет setTimeout **************
+  }
+
+  modalTrigger.forEach((item) => {
+    item.addEventListener('click', () => {
+      // modal.classList.add('show');
+      // modal.classList.remove('hide');
+      openModal();
+    });
+  });
+
+  function closeModal() {
+    modal.classList.toggle('show');
+    document.body.style.overflow = '';
+  }
+
+  modalClose.addEventListener('click', () => {
+    // modal.classList.add('hide');
+    // madal.classList.remove('show');
+    closeModal();
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Escape' && modal.classList.contains('show')) {
+      closeModal();
+    }
+  });
+
+  //  ************ появление модального окна через какое то время *********
+
+  const modalTimerId = setTimeout(openModal, 5000);
+
+  //  ************ появление модального окна в конце странице *********
+  function showModalByScroll() {
+    if (
+      window.pageYOffset + document.documentElement.clientHeight >=
+      document.documentElement.scrollHeight - 1
+    ) {
+      openModal();
+      window.removeEventListener('scroll', showModalByScroll);
+    }
+  }
+
+  window.addEventListener('scroll', showModalByScroll);
 });
 
 
